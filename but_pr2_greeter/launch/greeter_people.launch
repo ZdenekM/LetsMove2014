@@ -4,6 +4,8 @@
   <include file="$(find but_pr2_greeter)/launch/greeter_common.launch"/>
   
   <include file="$(find face_detector)/launch/face_detector.rgbd.launch">
+    <arg name="camera" value="head_kinect"/>
+    <arg name="fixed_frame" value="head_mount_kinect_rgb_optical_frame"/>
     <arg name="image_topic" value="image_rect_color"/>
     <arg name="depth_topic" value="hw_registered/image_rect_raw"/>
   </include>
