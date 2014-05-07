@@ -24,10 +24,10 @@ class FaceDetector:
 
 		self._debug = debug
 		
-		self._img_topic = "/camera/rgb/image_rect_color/compressed"
+		self._img_topic = "/head_kinect/rgb/image_rect_color/compressed"
 		# self._depth_topic = "/camera/depth_registered/hw_registered/image_rect_raw/compressed"
-		self._depth_topic = "/camera/depth_registered/hw_registered/image_rect_raw"
-		self._info_topic = "/camera/rgb/camera_info"    
+		self._depth_topic = "/head_kinect/depth_registered/hw_registered/image_rect_raw"
+		self._info_topic = "/head_kinect/rgb/camera_info"    
 	
 		# self._img_sub = rospy.Subscriber(img_topic, CompressedImage, self.img_cb,  queue_size = 1)
 		
@@ -138,7 +138,7 @@ class FaceDetector:
 				self._depth_vis = self._depth
 				cv2.rectangle(self._depth_vis, pt1, pt2, (127, 255, 0), 2)
 		
-				dist_face = self._depth[pt1[0]:pt2[0], pt1[1]:pt2[1]]
+			dist_face = self._depth[pt1[0]:pt2[0], pt1[1]:pt2[1]]
 		
 				
 			#dist = sp.median(dist_face)
@@ -208,6 +208,6 @@ if __name__ == '__main__':
 	rospy.init_node('but_pr2_face_detector')
 	rospy.loginfo("PR2 FaceDetector")
 	
-	bpg = FaceDetector(debug=True)
+	bpg = FaceDetector(debug=False)
 	
 	rospy.spin()

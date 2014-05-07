@@ -139,7 +139,7 @@ class PR2Greeter:
         p.header.stamp = rospy.Time.now()
         p.header.frame_id = "/base_link"
         
-        p.point.x = 2.0
+        p.point.x = 5.0
         
         sign = random.choice([-1, 1])
         
@@ -250,14 +250,23 @@ class PR2Greeter:
             goal = pr2_controllers_msgs.msg.PointHeadGoal()
         
             goal.target = target
-            goal.pointing_frame = "high_def_frame"
+	    #goal.min_duration = rospy.Duration(3.0)
+	    goal.max_velocity = 0.5
+            #goal.pointing_frame = "high_def_frame"
+	    goal.pointing_frame = "head_mount_kinect_rgb_link"
             goal.pointing_axis.x = 1
             goal.pointing_axis.y = 0
             goal.pointing_axis.z = 0
             
-            self._head_action_cl.send_goal(goal)
+	    try:
+
+	      self._head_action_cl.send_goal(goal)
             
-            self._head_action_cl.wait_for_result(rospy.Duration.from_sec(5.0))
+              self._head_action_cl.wait_for_result(rospy.Duration.from_sec(5.0))
+
+	    except:
+
+	      rospy.logerr("head action error")
             
             self._head_buff.task_done()
         
@@ -332,14 +341,16 @@ class PR2Greeter:
             self.no_face_random_delay = None
         
         if self.new_face:
-            
+
+            rospy.loginfo("new person")            
+
             self.face_counter = self.face_counter + 1
             
             self.new_face = False
             #cd = getPointDist(self.face)
             
             # TODO decide action based on distance ?
-            self.go(self._left_arm, self.l_home_pose)
+            self.go(self._left_arm, self.l_home_pose) # if a person is too close, dont move hand
             self.go(self._right_arm, self.r_advert)
             
             string = self.getRandomFromArray(self.invite_strings)
@@ -348,7 +359,9 @@ class PR2Greeter:
             # TODO wait some min. time + say something
         
         # after 20 seconds of no detected face, let's continue 
-        if self.face.header.stamp + rospy.Duration(20) < rospy.Time.now():
+        if self.face.header.stamp + rospy.Duration(10) < rospy.Time.now():
+
+	    rospy.loginfo("person left")
             
             string = self.getRandomFromArray(self.goodbye_strings)
             self.snd_handle.say(string)
@@ -360,7 +373,7 @@ class PR2Greeter:
             self.face = None
             return
         
-        self._head_buff.put(self.face)
+        self._head_buff.put(copy.deepcopy(self.face))
             
      
     def init_head(self):
@@ -394,17 +407,19 @@ class PR2Greeter:
             cd = self.getPointDist(pt) # current distance
             dd = fabs(self.face_last_dist - cd) # change in distance
             
-            if dd < 0.2:
+            if dd < 0.5:
         
                 self.face.header = pt.header
                 
                 # filter x,y,z values a bit
-                self.face.point.x = (15*self.face.point.x + pt.point.x)/16
-                self.face.point.y = (15*self.face.point.y + pt.point.y)/16
-                self.face.point.z = (15*self.face.point.z + pt.point.z)/16
+                self.face.point.x = (7*self.face.point.x + pt.point.x)/8
+                self.face.point.y = (7*self.face.point.y + pt.point.y)/8
+                self.face.point.z = (7*self.face.point.z + pt.point.z)/8
                 
             else:
                 
+	       print "new face ddist: " + str(dd)
+
                self.new_face = True
                self.face = pt
                

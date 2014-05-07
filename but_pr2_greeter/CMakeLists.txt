@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   rospy
   tf
-  roslint
+#  roslint
 )
 
 catkin_python_setup()
