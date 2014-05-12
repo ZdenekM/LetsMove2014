@@ -18,5 +18,5 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-install(PROGRAMS src/face_detector.py src/greeter.py src/fake_face_detector.py src/people_to_point.py
+install(PROGRAMS src/face_detector.py src/greeter.py src/fake_face_detector.py src/people_to_point.py src/speech_synthesis.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src)

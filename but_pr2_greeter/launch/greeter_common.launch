@@ -1,10 +1,14 @@
 <?xml version="1.0"?>
 <launch>
 
+  <!-- NOT listed as dependency in package.xml as it's rosbuild-based!!! -->
+  <!--node name="rospeex_ss" pkg="rospeex" type="rospeex_ss.py" required="true" output="log"/-->
+
   <node pkg="sound_play" type="soundplay_node.py" name="sound_play_node" output="screen"/>
   
   <node pkg="pr2_head_action" type="pr2_head_action" name="pr2_head_action_node" output="screen"/>
   
-  <include file="$(find pr2_ft_moveit_config)/launch/move_group.launch"/>
+  <!--include file="$(find pr2_ft_moveit_config)/launch/move_group.launch"/-->
+  <include file="$(find pr2_moveit_config)/launch/move_group.launch"/>
 
 </launch>

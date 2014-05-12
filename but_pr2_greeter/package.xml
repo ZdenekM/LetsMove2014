@@ -27,5 +27,6 @@
   <run_depend>rospy</run_depend>
   <run_depend>cv_bridge</run_depend>
   <run_depend>tf</run_depend>
+  <run_depend>rospeex</run_depend>
 
 </package>
