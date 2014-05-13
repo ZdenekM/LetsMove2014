@@ -37,16 +37,6 @@ class FaceDetector:
     self._depth_sub = message_filters.Subscriber(self._depth_topic, Image)
     self._info_sub = message_filters.Subscriber(self._info_topic, CameraInfo)
     
-    if self._disable_depth:
-      
-      self._ts = ApproximateSynchronizer(0.25, [self._img_sub, self._info_sub], 1)
-      self._ts.registerCallback(self.kinect_cb)
-      
-    else:
-      
-      self._ts = ApproximateSynchronizer(0.25, [self._img_sub, self._depth_sub, self._info_sub], 1)
-      self._ts.registerCallback(self.kinect_depth_cb)
-    
     self._point_pub = rospy.Publisher('nearest_face', PointStamped)
     
     self._img = None
@@ -74,6 +64,20 @@ class FaceDetector:
     else:
       
       rospy.loginfo("Ready")
+
+    if self._disable_depth:
+      
+      rospy.loginfo("Subscribing to: " + self._img_topic + " and " + self._info_topic + ".")
+
+      self._ts = ApproximateSynchronizer(0.25, [self._img_sub, self._info_sub], 3)
+      self._ts.registerCallback(self.kinect_cb)
+      
+    else:
+      
+      rospy.loginfo("Subscribing to: " + self._img_topic +  ", " + self._depth_topic + " and " + self._info_topic + ".")
+
+      self._ts = ApproximateSynchronizer(0.25, [self._img_sub, self._depth_sub, self._info_sub], 3)
+      self._ts.registerCallback(self.kinect_depth_cb)
   
   def get_face(self, image):
     
@@ -85,22 +89,30 @@ class FaceDetector:
     self._img_gray = cv2.cvtColor(self._img, cv2.COLOR_BGR2GRAY)
     self._img_gray = cv2.equalizeHist(self._img_gray)
     
-    rects = self._face_det.detectMultiScale(self._img_gray, 1.6, 3, cv2.cv.CV_HAAR_SCALE_IMAGE, (20, 20), (300, 300))
+    rects = self._face_det.detectMultiScale(self._img_gray, 1.6, 3, cv2.cv.CV_HAAR_SCALE_IMAGE, (30, 30))
+
+    #print "faces: " + str(len(rects))
     
     if len(rects) == 0:
+
+      return (False, None, None)
+
+    #if len(rects) == 0:
       
-      rects = self._face_det2.detectMultiScale(self._img_gray, 1.6, 3, cv2.cv.CV_HAAR_SCALE_IMAGE, (20, 20), (300, 300))
+    #  rects = self._face_det2.detectMultiScale(self._img_gray, 1.4, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, (20, 20))
       
-      if len(rects) > 0:
+    #  if len(rects) > 0:
         
-        rospy.loginfo("backup detector worked")
+    #    rospy.loginfo("backup detector worked")
         
-      else:
+    #  else:
         
-        dbg_img = self._img_gray
-        self._img_faces = dbg_img
+    #    dbg_img = self._img_gray
+    #    self._img_faces = dbg_img
+
+#	print "backup failed"
         
-        return (False, None, None)
+ #       return (False, None, None)
       
     max_area = 0
     max_area_idx = None
@@ -135,7 +147,15 @@ class FaceDetector:
       #cx = rects[max_area_idx][0] + rects[max_area_idx][2] / 2
       #cy = rects[max_area_idx][1] + rects[max_area_idx][3] / 2
         
+      #print "det"
+
       return (True, pt1, pt2)
+
+    else:
+
+      print "big error"
+
+      return (False, None, None)
   
   def publish(self, header, pt1, pt2, depth):
   	
@@ -151,12 +171,14 @@ class FaceDetector:
     pts.point.x = pt[0]
     pts.point.y = pt[1]
     pts.point.z = pt[2]
+
+    #print pts
     
     self._point_pub.publish(pts)
   
-  def kinect_cb(self,image, info):
-    
-    if self._debug and self._img is None:
+  def kinect_cb(self, image, info):
+
+    if self._img is None:
       
       rospy.loginfo("Kinect data received!")
       
@@ -171,7 +193,7 @@ class FaceDetector:
       
       return
      
-    self.publish(image.header, pt1, pt2, 2.0)
+    self.publish(image.header, pt1, pt2, 1.0)
   
   def get_centres(self,pt1,pt2):
   	
@@ -195,11 +217,11 @@ class FaceDetector:
     
     (ret, pt1, pt2) = self.get_face(image)
     
-    (cx, cy) = self.get_centres(pt1,pt2)
-    
     if not ret:
       
       return
+    
+    (cx, cy) = self.get_centres(pt1,pt2)
     
     # print "depth: " + str(len(depth.data))
     
@@ -257,6 +279,6 @@ if __name__ == '__main__':
   rospy.init_node('but_pr2_face_detector')
   rospy.loginfo("PR2 FaceDetector")
   
-  bpg = FaceDetector(debug=False,cam_ns = "/camera")
+  bpg = FaceDetector(debug=False)
   
   rospy.spin()

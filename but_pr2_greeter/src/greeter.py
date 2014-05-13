@@ -248,19 +248,19 @@ class PR2Greeter:
         
         p.point.y = sign * random.uniform(1.5, 0.5)
         p.point.z = random.uniform(1.7, 0.2)
-        self._head_buff.put((copy.deepcopy(p), True))
+        self._head_buff.put((copy.deepcopy(p), 0.1, True))
         
         p.point.y = -1 * sign * random.uniform(1.5, 0.5)
         p.point.z = random.uniform(1.7, 0.2)
-        self._head_buff.put((copy.deepcopy(p), True))
+        self._head_buff.put((copy.deepcopy(p), 0.1, True))
         
         p.point.y = sign * random.uniform(1.5, 0.5)
         p.point.z = random.uniform(1.7, 0.2)
-        self._head_buff.put((copy.deepcopy(p), True))
+        self._head_buff.put((copy.deepcopy(p), 0.1, True))
         
         p.point.y = -1 * sign * random.uniform(1.5, 0.5)
         p.point.z = random.uniform(1.7, 0.2)
-        self._head_buff.put((copy.deepcopy(p), True))
+        self._head_buff.put((copy.deepcopy(p), 0.1, True))
         
         rospy.loginfo("Looking around")
         rospy.sleep(1)
@@ -345,7 +345,7 @@ class PR2Greeter:
         
         while not rospy.is_shutdown():
             
-            (target, imp) = self._head_buff.get()
+            (target, vel, imp) = self._head_buff.get()
             
             # we don't need to block it here
             self._head_buff.task_done()
@@ -365,7 +365,7 @@ class PR2Greeter:
         
             goal.target = target
 	          # goal.min_duration = rospy.Duration(3.0)
-            goal.max_velocity = 0.5
+            goal.max_velocity = vel
             # goal.pointing_frame = "high_def_frame"
             goal.pointing_frame = "head_mount_kinect_rgb_link"
             goal.pointing_axis.x = 1
@@ -491,7 +491,7 @@ class PR2Greeter:
             
             return
         
-        self._head_buff.put((copy.deepcopy(self.face), False))
+        self._head_buff.put((copy.deepcopy(self.face), 0.4, False))
             
      
     def init_head(self):
@@ -504,7 +504,7 @@ class PR2Greeter:
         p.point.y = 0.0
         p.point.z = 1.7
         
-        self._head_buff.put((p, True))
+        self._head_buff.put((p, 0.1, True))
         
     def face_cb(self, point):
         
@@ -530,9 +530,10 @@ class PR2Greeter:
                 self.face.header = pt.header
                 
                 # filter x,y,z values a bit
-                self.face.point.x = (7 * self.face.point.x + pt.point.x) / 8
-                self.face.point.y = (7 * self.face.point.y + pt.point.y) / 8
-                self.face.point.z = (7 * self.face.point.z + pt.point.z) / 8
+                self.face.point = pt.point
+                #self.face.point.x = (self.face.point.x + pt.point.x) / 2
+                #self.face.point.y = (self.face.point.y + pt.point.y) / 2
+                #self.face.point.z = (self.face.point.z + pt.point.z) / 2
                 
             else:
                 
